@@ -1,11 +1,10 @@
 import time
-import os
-
-import socketio
 from datetime import datetime
-import psutil
 
-import clr, json, platform, os
+import clr
+import os
+import psutil
+import socketio
 
 from nvidia.helper import nvidia_utilization, nvidia_temperature
 
@@ -65,8 +64,9 @@ def parse_sensor(snsr):
 def parse_cpu(raw):
     for data in raw:
         if data.get('Type') == 'CPU':
-            if 'AMD' in data.get('Name') and 'Tctl' in data.get('Sensor'):
-                return float(data.get('Reading')[:-2])
+            if 'AMD' in data.get('Name'):
+                if 'Tdie' in data.get('Sensor'): # no offset of 10
+                    return float(data.get('Reading')[:-2])
             else:
                 return float(data.get('Reading')[:-2])
 
@@ -86,5 +86,3 @@ while True:
         sio.emit('cpu', {'id': str(datetime.now()), 'usage': psutil.cpu_percent(),
                          'temp': parse_cpu(fetch_data(init_OHM()))})
     time.sleep(1)
-
-# sio.wait()
